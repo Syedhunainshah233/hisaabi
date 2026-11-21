@@ -197,8 +197,8 @@ fun KhataScreen(
             item(key = "cols") {
                 Row(Modifier.padding(horizontal = 32.dp, vertical = 6.dp)) {
                     SectionLabel(s.colEntries, Modifier.weight(1f))
-                    SectionLabel(s.colGave, Modifier.width(92.dp).padding(start = 4.dp))
-                    SectionLabel(s.colGot, Modifier.width(80.dp))
+                    ColumnLabel(s.colGave, Modifier.width(88.dp))
+                    ColumnLabel(s.colGot, Modifier.width(80.dp))
                 }
             }
             if (txns.isEmpty()) {
@@ -227,6 +227,19 @@ fun KhataScreen(
             }
         }
     }
+}
+
+@Composable
+private fun ColumnLabel(text: String, modifier: Modifier) {
+    Text(
+        text,
+        modifier = modifier,
+        textAlign = TextAlign.End,
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        letterSpacing = 0.6.sp,
+    )
 }
 
 @Composable

@@ -82,7 +82,7 @@ abstract class ShotsBase {
             vm.saveKhata(null, "Faisal", "", Khata.TYPE_PERSONAL, "", "", 0, true) { }
         }
         rule.waitUntil(15_000) { vm.txns.value.size >= 8 && vm.khatas.value.size >= 5 }
-        waitForText("Faisal")
+        waitForText("Ahmed Raza")
     }
 
     /** Visits the main screens in the current theme/language. */
@@ -117,6 +117,7 @@ abstract class ShotsBase {
         rule.onNodeWithText(s.save).performClick()
         rule.mainClock.advanceTimeBy(500)
         shot("${tag}_07_saved_popup", idle = false)
+        rule.mainClock.advanceTimeBy(1500)
         rule.mainClock.autoAdvance = true
         rule.waitForIdle()
         shot("${tag}_08_khata_after_save")
