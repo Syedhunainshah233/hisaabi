@@ -241,6 +241,7 @@ fun EntryScreen(
                             singleLine = true,
                             textStyle = TextStyle(fontSize = 46.sp, fontWeight = FontWeight.Bold, color = accent),
                             cursorBrush = SolidColor(accent),
+                            visualTransformation = ThousandsTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier
                                 .width(220.dp)
@@ -261,9 +262,6 @@ fun EntryScreen(
                             .height(2.dp)
                             .background(accent)
                     )
-                    if (amount > 0) {
-                        Text(Fmt.money(amount, cur), fontSize = 13.sp, color = ext.muted)
-                    }
                     if (showError) {
                         Text(s.amountError, fontSize = 13.sp, color = ext.red)
                     }

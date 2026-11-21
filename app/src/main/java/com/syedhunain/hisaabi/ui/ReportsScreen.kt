@@ -235,7 +235,7 @@ fun ReportsScreen(vm: AppViewModel, onOpenKhata: (Long) -> Unit, bottomBar: @Com
                                 maxLines = 1, overflow = TextOverflow.Ellipsis,
                             )
                             Text(
-                                (if (t.note.isNotBlank()) t.note + " · " else "") + Fmt.dateTime(t.date),
+                                (if (t.note.isNotBlank()) t.note + " · " else "") + Fmt.dateTimeShort(t.date),
                                 fontSize = 12.sp, color = ext.muted, maxLines = 1, overflow = TextOverflow.Ellipsis,
                             )
                         }

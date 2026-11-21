@@ -100,7 +100,9 @@ abstract class ShotsBase {
         shot("${tag}_02_khata")
 
         if (full) {
-            rule.onNodeWithContentDescription(s.delete).performClick()
+            rule.onNodeWithContentDescription(s.more).performClick()
+            shot("${tag}_03a_khata_menu")
+            click(s.delete)
             shot("${tag}_03_khata_delete_dialog")
             click(s.cancel)
         }

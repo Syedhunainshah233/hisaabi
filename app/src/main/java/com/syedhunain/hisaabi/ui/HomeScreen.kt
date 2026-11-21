@@ -271,6 +271,8 @@ private fun KhataRow(item: KhataItem, currency: String, first: Boolean, last: Bo
                     Fmt.relative(item.lastActivity, s),
                     fontSize = 13.sp,
                     color = ext.muted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             Spacer(Modifier.width(8.dp))
@@ -282,7 +284,8 @@ private fun KhataRow(item: KhataItem, currency: String, first: Boolean, last: Bo
                 }
                 Text(
                     Fmt.money(item.balance, currency),
-                    fontSize = 16.sp,
+                    maxLines = 1,
+                    fontSize = if (Fmt.money(item.balance, currency).length >= 12) 14.sp else 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = color,
                 )

@@ -152,28 +152,25 @@ fun KhataFormScreen(
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { v -> phone = v.filter { it.isDigit() || it == '+' || it == ' ' || it == '-' }.take(20) },
-                    label = { Text(s.mobile) },
-                    placeholder = { Text("03XX XXXXXXX") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(Modifier.width(8.dp))
-                OutlinedButton(
-                    onClick = { runCatching { picker.launch(Unit) } },
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.height(56.dp),
-                ) {
-                    Icon(Icons.Filled.AccountCircle, contentDescription = null)
-                    Spacer(Modifier.width(6.dp))
-                    Text(s.contacts)
-                }
-            }
+            OutlinedTextField(
+                value = phone,
+                onValueChange = { v -> phone = v.filter { it.isDigit() || it == '+' || it == ' ' || it == '-' }.take(20) },
+                label = { Text(s.mobile) },
+                placeholder = { Text("03XX XXXXXXX") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                shape = RoundedCornerShape(14.dp),
+                trailingIcon = {
+                    IconButton(onClick = { runCatching { picker.launch(Unit) } }) {
+                        Icon(
+                            Icons.Filled.AccountCircle,
+                            contentDescription = s.contacts,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
 
             SectionLabel(s.khataType)
             val types = listOf(Khata.TYPE_CUSTOMER, Khata.TYPE_SUPPLIER, Khata.TYPE_FRIEND, Khata.TYPE_PERSONAL)

@@ -26,6 +26,9 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -77,6 +80,7 @@ fun KhataScreen(
     val item = items.firstOrNull { it.khata.id == khataId } ?: return
     val txns by remember(khataId) { vm.txnsFor(khataId) }.collectAsState(initial = emptyList())
     var askDelete by remember { mutableStateOf(false) }
+    var menuOpen by remember { mutableStateOf(false) }
 
     val k = item.khata
     val balance = item.balance
@@ -116,6 +120,7 @@ fun KhataScreen(
                         Text(
                             k.phone.ifBlank { s.typeLabel(k.type) },
                             color = Brand.Mint, fontSize = 13.sp,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis,
                         )
                     }
                     if (k.phone.isNotBlank()) {
@@ -123,11 +128,22 @@ fun KhataScreen(
                             Icon(Icons.Filled.Call, contentDescription = s.call, tint = Brand.Ivory)
                         }
                     }
-                    IconButton(onClick = onEdit) {
-                        Icon(Icons.Filled.Edit, contentDescription = s.edit, tint = Brand.Ivory)
-                    }
-                    IconButton(onClick = { askDelete = true }) {
-                        Icon(Icons.Filled.Delete, contentDescription = s.delete, tint = Brand.Ivory)
+                    Box {
+                        IconButton(onClick = { menuOpen = true }) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = s.more, tint = Brand.Ivory)
+                        }
+                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                            DropdownMenuItem(
+                                text = { Text(s.edit) },
+                                leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                                onClick = { menuOpen = false; onEdit() },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(s.delete, color = ext.red) },
+                                leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = ext.red) },
+                                onClick = { menuOpen = false; askDelete = true },
+                            )
+                        }
                     }
                 }
                 Column(Modifier.padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -197,8 +213,8 @@ fun KhataScreen(
             item(key = "cols") {
                 Row(Modifier.padding(horizontal = 32.dp, vertical = 6.dp)) {
                     SectionLabel(s.colEntries, Modifier.weight(1f))
-                    ColumnLabel(s.colGave, Modifier.width(88.dp))
-                    ColumnLabel(s.colGot, Modifier.width(80.dp))
+                    ColumnLabel(s.colGave, Modifier.width(80.dp))
+                    ColumnLabel(s.colGot, Modifier.width(76.dp))
                 }
             }
             if (txns.isEmpty()) {
@@ -311,18 +327,23 @@ private fun TxnRow(t: Txn, first: Boolean, last: Boolean, onClick: () -> Unit) {
                     fontSize = 15.sp, fontWeight = FontWeight.Medium,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
-                Text(Fmt.dateTime(t.date), fontSize = 12.sp, color = ext.muted)
+                Text(
+                    Fmt.dateTimeShort(t.date), fontSize = 12.sp, color = ext.muted,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
             }
             Text(
                 if (t.gave) Fmt.number(t.amount) else "",
-                modifier = Modifier.width(88.dp),
+                modifier = Modifier.width(80.dp),
                 textAlign = TextAlign.End,
+                maxLines = 1,
                 color = ext.red, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
             )
             Text(
                 if (!t.gave) Fmt.number(t.amount) else "",
-                modifier = Modifier.width(80.dp),
+                modifier = Modifier.width(76.dp),
                 textAlign = TextAlign.End,
+                maxLines = 1,
                 color = ext.green, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
             )
         }

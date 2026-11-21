@@ -47,6 +47,7 @@ class Str(val romanUrdu: Boolean) {
     val pdfStatement get() = t("PDF Statement", "PDF Statement")
     val call get() = t("Call", "Call karein")
     val edit get() = t("Edit", "Badlein")
+    val more get() = t("More options", "Mazeed options")
     val back get() = t("Back", "Wapas")
     val openingBalance get() = t("Opening balance", "Opening balance")
     fun noEntry(gave: Boolean) = if (gave) t("Gave", "Diya") else t("Got", "Liya")

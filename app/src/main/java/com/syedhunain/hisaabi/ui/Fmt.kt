@@ -1,5 +1,10 @@
 package com.syedhunain.hisaabi.ui
 
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
+
 import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -24,7 +29,15 @@ object Fmt {
     fun zdt(ms: Long): ZonedDateTime = Instant.ofEpochMilli(ms).atZone(ZoneId.systemDefault())
 
     fun date(ms: Long): String = zdt(ms).format(dateF)
+    private val shortDateTimeF = DateTimeFormatter.ofPattern("d MMM, h:mm a", Locale.ENGLISH)
+
     fun dateTime(ms: Long): String = zdt(ms).format(dateTimeF)
+
+    /** "21 Nov, 7:05 AM" this year, full date otherwise. */
+    fun dateTimeShort(ms: Long): String {
+        val z = zdt(ms)
+        return if (z.year == LocalDate.now().year) z.format(shortDateTimeF) else z.format(dateTimeF)
+    }
 
     fun relative(ms: Long, s: Str): String {
         val z = zdt(ms)
@@ -43,4 +56,31 @@ object Fmt {
             .take(2)
             .joinToString("") { it.first().uppercase() }
             .ifEmpty { "?" }
+}
+
+/** Shows typed digits with thousands commas ("2000" -> "2,000") while keeping the raw value. */
+class ThousandsTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val raw = text.text
+        val value = raw.toLongOrNull() ?: return TransformedText(text, OffsetMapping.Identity)
+        val out = Fmt.number(value)
+        val o2t = IntArray(raw.length + 1)
+        var digits = 0
+        for (j in out.indices) {
+            if (out[j].isDigit()) {
+                digits++
+                if (digits <= raw.length) o2t[digits] = j + 1
+            }
+        }
+        val t2o = IntArray(out.length + 1)
+        digits = 0
+        for (j in 0..out.length) {
+            t2o[j] = digits.coerceAtMost(raw.length)
+            if (j < out.length && out[j].isDigit()) digits++
+        }
+        return TransformedText(AnnotatedString(out), object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int = o2t[offset.coerceIn(0, raw.length)]
+            override fun transformedToOriginal(offset: Int): Int = t2o[offset.coerceIn(0, out.length)]
+        })
+    }
 }

@@ -55,6 +55,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -88,7 +89,24 @@ fun AnimatedMoney(
         anim.animateTo(value.toFloat(), tween(durationMillis = 750, easing = FastOutSlowInEasing))
     }
     val shown = if (anim.isRunning) anim.value.toLong() else value
-    Text(Fmt.money(shown, currency), style = style, color = color, modifier = modifier)
+    // Size is picked from the final value so the text does not jump while counting.
+    val len = Fmt.money(value, currency).length
+    val base = style.fontSize
+    val size = when {
+        !base.isSp -> base
+        len >= 14 -> base * 0.72f
+        len >= 12 -> base * 0.84f
+        else -> base
+    }
+    Text(
+        Fmt.money(shown, currency),
+        style = style.copy(fontSize = size),
+        color = color,
+        modifier = modifier,
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
 
 /** Fade + slide in when first shown; small stagger by index. */
