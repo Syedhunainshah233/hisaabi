@@ -21,26 +21,28 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Build debug APK
+      - name: Build APK
         run: chmod +x gradlew && ./gradlew :app:assembleDebug --stacktrace
 
       - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk Hisaabi-test.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk Hisaabi.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Hisaabi-test-apk
-          path: Hisaabi-test.apk
+          name: Hisaabi-apk
+          path: Hisaabi.apk
 
-      - name: Publish test APK as a download link
+      - name: Publish APK as a download link
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete test-build --yes --cleanup-tag || true
-          gh release create test-build Hisaabi-test.apk \
-            --title "Hisaabi test build" \
-            --notes "Latest test APK built from main (${GITHUB_SHA::7})." \
-            --prerelease
+          gh release delete latest --yes --cleanup-tag || true
+          VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+          gh release create latest Hisaabi.apk \
+            --title "Hisaabi $VERSION" \
+            --notes "Hisaabi $VERSION (${GITHUB_SHA::7}). Install: download Hisaabi.apk on your phone and open it." \
+            --latest
 
   screenshots:
     runs-on: ubuntu-latest

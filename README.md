@@ -9,7 +9,8 @@ Easy Khata-style money ledger for Android: track what you gave (Diya) and got (L
 
 ## Build
 
-Every push to `main` builds a test APK with GitHub Actions (Actions tab → latest run → **Hisaabi-test-apk**).
+Every push to `main` builds the APK with GitHub Actions and publishes it at
+https://github.com/Syedhunainshah233/hisaabi/releases/latest/download/Hisaabi.apk
 
 Locally: open the folder in Android Studio, or run `./gradlew :app:assembleDebug`.
 

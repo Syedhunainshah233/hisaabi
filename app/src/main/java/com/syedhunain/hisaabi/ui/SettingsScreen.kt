@@ -308,9 +308,9 @@ private fun AdsOffRow(vm: AppViewModel) {
     }
 }
 
-// Turn off before a Play Store release: Google Play does not allow
-// in-app donations outside Play billing (except registered charities).
-private const val SHOW_SUPPORT = true
+// Shown only in the sideloaded APK. Play Store (release) builds hide it: Google Play does not
+// allow in-app donations outside Play billing (except registered charities).
+private val SHOW_SUPPORT = BuildConfig.DEBUG
 private const val SUPPORT_BANK = "NayaPay"
 private const val SUPPORT_IBAN = "PK48NAYA1234503265904350"
 
