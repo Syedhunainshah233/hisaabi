@@ -13,4 +13,4 @@ Every push to `main` builds a test APK with GitHub Actions (Actions tab → late
 
 Locally: open the folder in Android Studio, or run `./gradlew :app:assembleDebug`.
 
-Developer: Syed Hunain
+Developer: SyedTechdevelopers

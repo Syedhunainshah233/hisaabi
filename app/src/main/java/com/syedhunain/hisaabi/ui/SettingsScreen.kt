@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
@@ -40,7 +41,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -156,13 +160,75 @@ fun SettingsScreen(vm: AppViewModel, bottomBar: @Composable () -> Unit) {
                 ValueRow(s.businessName, prefs.business.ifBlank { s.notSet }) { editBusiness = true }
             }
 
+            if (SHOW_SUPPORT) {
+                SupportCard()
+            }
+
             SectionLabel(s.sectionAbout, Modifier.padding(start = 4.dp, top = 6.dp))
             Group {
                 ValueRow(s.version, "0.1.0 (test)", null)
                 HorizontalDivider(color = ext.divider)
-                ValueRow(s.developer, "Syed Hunain", null)
+                ValueRow(s.developer, DEVELOPER_NAME, null)
             }
             Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+const val DEVELOPER_NAME = "SyedTechdevelopers"
+
+// Turn off before a Play Store release: Google Play does not allow
+// in-app donations outside Play billing (except registered charities).
+private const val SHOW_SUPPORT = true
+private const val SUPPORT_BANK = "NayaPay"
+private const val SUPPORT_IBAN = "PK48NAYA1234503265904350"
+
+@Composable
+private fun SupportCard() {
+    val s = LocalStr.current
+    val ext = LocalExt.current
+    val ctx = LocalContext.current
+    val clipboard = LocalClipboardManager.current
+    Column(
+        Modifier
+            .padding(top = 6.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(ext.goldSoft)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.Favorite, contentDescription = null, tint = ext.red, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(s.supportTitle, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+        }
+        Text(s.supportBody, fontSize = 13.sp, color = ext.onGoldSoft)
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(SUPPORT_BANK, fontSize = 12.sp, color = ext.muted)
+                Text(
+                    SUPPORT_IBAN,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(DEVELOPER_NAME, fontSize = 12.sp, color = ext.muted)
+            }
+            TextButton(onClick = {
+                clipboard.setText(AnnotatedString(SUPPORT_IBAN))
+                Toast.makeText(ctx, s.copied, Toast.LENGTH_SHORT).show()
+            }) { Text(s.copy, fontWeight = FontWeight.SemiBold) }
         }
     }
 }

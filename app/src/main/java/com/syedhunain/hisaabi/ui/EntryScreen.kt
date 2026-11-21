@@ -61,10 +61,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -142,8 +144,13 @@ fun EntryScreen(
 
     if (showPicker) {
         val state = rememberDatePickerState(initialSelectedDateMillis = date)
+        // The Material date picker is a fixed 360dp wide. On narrower phones it touched the
+        // screen edges, so shrink it to keep at least 20dp of space on each side.
+        val screenW = LocalConfiguration.current.screenWidthDp
+        val pickerScale = ((screenW - 40f) / 360f).coerceAtMost(1f)
         DatePickerDialog(
             onDismissRequest = { showPicker = false },
+            modifier = Modifier.graphicsLayer { scaleX = pickerScale; scaleY = pickerScale },
             confirmButton = {
                 TextButton(onClick = {
                     state.selectedDateMillis?.let { sel ->

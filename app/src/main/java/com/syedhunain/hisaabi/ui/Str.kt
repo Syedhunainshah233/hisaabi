@@ -142,6 +142,13 @@ class Str(val romanUrdu: Boolean) {
     val notSet get() = t("Not set", "Nahi rakha")
     val version get() = t("Version", "Version")
     val developer get() = t("Developer", "Developer")
+    val supportTitle get() = t("Support the developer", "Developer ko support karein")
+    val supportBody get() = t(
+        "Like Hisaabi? You can support its development by sending any amount to:",
+        "Hisaabi pasand aayi? Koi bhi raqam bhej kar developer ki madad karein:"
+    )
+    val copy get() = t("Copy", "Copy")
+    val copied get() = t("Account number copied", "Account number copy ho gaya")
     val setPin get() = t("Set a 4-digit PIN", "4 hindson ka PIN rakhein")
     val newPin get() = t("New PIN", "Naya PIN")
     val confirmPin get() = t("Confirm PIN", "PIN dobara likhein")
