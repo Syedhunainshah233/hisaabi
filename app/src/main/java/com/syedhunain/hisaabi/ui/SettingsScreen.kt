@@ -246,7 +246,7 @@ private fun GoogleBackupCard(vm: AppViewModel) {
                 CardButton(s.backupNow, enabled = !vm.cloudBusy, fill = false) { action = "backup"; getToken() }
             }
             Text(s.autoBackupNote, color = Brand.Mint, fontSize = 12.sp)
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 TextButton(onClick = { action = "restore"; getToken() }, enabled = !vm.cloudBusy) {
                     Text(s.restoreRow, color = Brand.GoldLight, fontSize = 13.sp)
                 }

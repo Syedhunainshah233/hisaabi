@@ -171,7 +171,7 @@ class Str(val romanUrdu: Boolean) {
     val never get() = t("Not yet", "Abhi tak nahi")
     val backupNow get() = t("Back up now", "Abhi Backup")
     val restoreRow get() = t("Restore from backup", "Data wapas laayein (Restore)")
-    val signOut get() = t("Sign out of Google", "Google se Logout")
+    val signOut get() = t("Sign out", "Logout")
     val autoBackupNote get() = t("Backs up automatically once a day when you open the app.", "Din mein ek dafa app kholne par khud backup ho jata hai.")
     val backupDone get() = t("Backup saved to Google Drive", "Google Drive mein backup ho gaya")
     val restoreDone get() = t("Your records are back", "Aap ka hisaab wapas aa gaya")
