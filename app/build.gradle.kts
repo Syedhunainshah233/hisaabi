@@ -17,6 +17,17 @@ android {
         versionName = "0.1.0-test"
     }
 
+    signingConfigs {
+        // Fixed test key so the SHA-1 registered in Google Cloud stays the same on every build.
+        // Only for test builds — the Play Store release uses a separate private key.
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
