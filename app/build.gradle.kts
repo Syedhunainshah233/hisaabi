@@ -17,6 +17,9 @@ android {
         versionName = "1.0.0"
     }
 
+    // Release (upload) key comes from GitHub Actions secrets; it is never stored in the repo.
+    val releaseKeystore = System.getenv("HISAABI_KEYSTORE")
+
     signingConfigs {
         // Fixed test key so the SHA-1 registered in Google Cloud stays the same on every build.
         // Only for test builds — the Play Store release uses a separate private key.
@@ -25,6 +28,14 @@ android {
             storePassword = "android"
             keyAlias = "androiddebugkey"
             keyPassword = "android"
+        }
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = System.getenv("HISAABI_KEYSTORE_PASSWORD")
+                keyAlias = "hisaabi"
+                keyPassword = System.getenv("HISAABI_KEYSTORE_PASSWORD")
+            }
         }
     }
 
@@ -42,6 +53,7 @@ android {
             buildConfigField("String", "AD_NATIVE", "\"ca-app-pub-8064134362670148/9674937660\"")
             buildConfigField("String", "AD_INTERSTITIAL", "\"ca-app-pub-8064134362670148/8235356774\"")
             buildConfigField("String", "AD_REWARDED", "\"ca-app-pub-8064134362670148/9548438440\"")
+            if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
