@@ -44,7 +44,14 @@ abstract class ShotsBase {
     }
 
     protected fun click(text: String) {
-        rule.onAllNodesWithText(text)[0].performClick()
+        rule.waitForIdle()
+        val merged = rule.onAllNodesWithText(text)
+        if (merged.fetchSemanticsNodes().isNotEmpty()) {
+            merged[0].performClick()
+        } else {
+            // Some buttons (e.g. the FAB) keep their label in the unmerged tree.
+            rule.onAllNodesWithText(text, useUnmergedTree = true)[0].performClick()
+        }
         rule.waitForIdle()
     }
 
