@@ -1,6 +1,8 @@
 package com.syedhunain.hisaabi.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -59,6 +61,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
@@ -72,7 +76,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun EntryScreen(
     vm: AppViewModel,
@@ -111,6 +115,8 @@ fun EntryScreen(
     }
 
     val focus = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
     LaunchedEffect(Unit) {
         if (txnId == null) {
             delay(300)
@@ -120,7 +126,7 @@ fun EntryScreen(
 
     LaunchedEffect(saved) {
         if (saved) {
-            delay(650)
+            delay(900)
             onBack()
         }
     }
@@ -340,6 +346,8 @@ fun EntryScreen(
                         if (amount <= 0) {
                             showError = true
                         } else if (!saved) {
+                            focusManager.clearFocus()
+                            keyboard?.hide()
                             vm.saveTxn(existing, khataId, amount, gave, note, date)
                             saved = true
                         }
@@ -354,26 +362,56 @@ fun EntryScreen(
             }
         }
 
-        // Saved tick animation
+        // Saved popup: dim overlay behind, card with an animated tick in front.
         AnimatedVisibility(
             visible = saved,
-            enter = fadeIn() + scaleIn(
-                initialScale = 0.4f,
-                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
-            ),
-            modifier = Modifier.align(Alignment.Center),
+            enter = fadeIn(tween(180)),
+            modifier = Modifier.fillMaxSize(),
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.55f))
+                    .clickable(enabled = true, onClick = {}),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
                     Modifier
-                        .size(96.dp)
-                        .clip(CircleShape)
-                        .background(accentButton),
-                    contentAlignment = Alignment.Center,
+                        .animateEnterExit(
+                            enter = scaleIn(
+                                initialScale = 0.6f,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
+                            ) + fadeIn(),
+                        )
+                        .width(220.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(vertical = 28.dp, horizontal = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    Icon(Icons.Filled.Check, contentDescription = s.saved, tint = Color.White, modifier = Modifier.size(56.dp))
+                    Box(
+                        Modifier
+                            .size(84.dp)
+                            .clip(CircleShape)
+                            .background(accentButton),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(50.dp))
+                    }
+                    Text(
+                        s.saved,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        Fmt.money(amount, cur),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = accent,
+                    )
                 }
-                Text(s.saved, fontWeight = FontWeight.Bold, fontSize = 17.sp)
             }
         }
     }

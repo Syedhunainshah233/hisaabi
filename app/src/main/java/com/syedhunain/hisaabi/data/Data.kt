@@ -122,5 +122,13 @@ abstract class AppDatabase : RoomDatabase() {
                     "hisaabi.db"
                 ).build().also { instance = it }
             }
+
+        /** Tests only: forget the open database so the next test gets a fresh one. */
+        fun resetForTests() {
+            synchronized(this) {
+                instance?.close()
+                instance = null
+            }
+        }
     }
 }
