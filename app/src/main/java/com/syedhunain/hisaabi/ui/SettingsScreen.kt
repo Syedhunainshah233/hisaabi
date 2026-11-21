@@ -1,6 +1,12 @@
 package com.syedhunain.hisaabi.ui
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.CircularProgressIndicator
+import com.syedhunain.hisaabi.BuildConfig
+import com.syedhunain.hisaabi.util.Ads
+import com.syedhunain.hisaabi.util.BannerAd
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -97,29 +103,7 @@ fun SettingsScreen(vm: AppViewModel, bottomBar: @Composable () -> Unit) {
         ) {
             Text(s.tabSettings, style = MaterialTheme.typography.headlineSmall)
 
-            // Google backup (next version)
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(ext.header)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Refresh, contentDescription = null, tint = Brand.GoldLight)
-                    Spacer(Modifier.width(10.dp))
-                    Text(s.backupTitle, color = Brand.Ivory, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, modifier = Modifier.weight(1f))
-                    Text(
-                        s.comingSoon, color = Brand.EmeraldDeep, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Brand.GoldLight)
-                            .padding(horizontal = 8.dp, vertical = 3.dp),
-                    )
-                }
-                Text(s.backupBody, color = Brand.Mint, fontSize = 13.sp)
-            }
+            GoogleBackupCard(vm)
 
             SectionLabel(s.sectionData, Modifier.padding(start = 4.dp, top = 6.dp))
             Group {
@@ -160,13 +144,19 @@ fun SettingsScreen(vm: AppViewModel, bottomBar: @Composable () -> Unit) {
                 ValueRow(s.businessName, prefs.business.ifBlank { s.notSet }) { editBusiness = true }
             }
 
+            if (Ads.ready) {
+                Group { AdsOffRow(vm) }
+            }
+
+            BannerAd(prefs, Modifier.padding(top = 4.dp))
+
             if (SHOW_SUPPORT) {
                 SupportCard()
             }
 
             SectionLabel(s.sectionAbout, Modifier.padding(start = 4.dp, top = 6.dp))
             Group {
-                ValueRow(s.version, "0.1.0 (test)", null)
+                ValueRow(s.version, BuildConfig.VERSION_NAME, null)
                 HorizontalDivider(color = ext.divider)
                 ValueRow(s.developer, DEVELOPER_NAME, null)
             }
@@ -176,6 +166,147 @@ fun SettingsScreen(vm: AppViewModel, bottomBar: @Composable () -> Unit) {
 }
 
 const val DEVELOPER_NAME = "SyedTechdevelopers"
+
+@Composable
+private fun GoogleBackupCard(vm: AppViewModel) {
+    val s = LocalStr.current
+    val ctx = LocalContext.current
+    val prefs = vm.prefs
+    val signedIn = prefs.googleEmail.isNotEmpty()
+    var action by remember { mutableStateOf("") }
+
+    val getToken = rememberGoogleToken { token ->
+        if (token == null) {
+            toast(ctx, s.signInFailed)
+            return@rememberGoogleToken
+        }
+        when (action) {
+            "signin" -> vm.onSignedIn(token, lookForBackup = true) { r ->
+                if (r != AppViewModel.BackupResult.OK) toast(ctx, s.cloudError)
+            }
+            "backup" -> vm.backupNow(token) { r ->
+                if (r == AppViewModel.BackupResult.OK) {
+                    toast(ctx, s.backupDone)
+                    Ads.onBreak(ctx.findActivity(), prefs, "backup", every = 1)
+                } else toast(ctx, s.cloudError)
+            }
+            "restore" -> vm.findBackupToRestore(token) { r ->
+                when (r) {
+                    AppViewModel.BackupResult.NO_BACKUP -> toast(ctx, s.noBackup)
+                    AppViewModel.BackupResult.ERROR -> toast(ctx, s.cloudError)
+                    else -> Unit
+                }
+            }
+        }
+    }
+
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(LocalExt.current.header)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.Refresh, contentDescription = null, tint = Brand.GoldLight)
+            Spacer(Modifier.width(10.dp))
+            Text(s.backupTitle, color = Brand.Ivory, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, modifier = Modifier.weight(1f))
+            if (vm.cloudBusy) {
+                CircularProgressIndicator(color = Brand.GoldLight, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
+            }
+        }
+        if (!signedIn) {
+            Text(s.backupSignedOutBody, color = Brand.Mint, fontSize = 13.sp)
+            CardButton(s.signInGoogle, enabled = !vm.cloudBusy) { action = "signin"; getToken() }
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Avatar(
+                    prefs.googleName.ifBlank { prefs.googleEmail }, size = 40.dp,
+                    bg = Brand.GoldLight, fg = Brand.EmeraldDeep,
+                )
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        prefs.googleEmail, color = Brand.Ivory, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(s.connected + " ✓", color = Brand.Mint, fontSize = 12.sp)
+                }
+            }
+            HorizontalDivider(color = Brand.Ivory.copy(alpha = 0.2f))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(s.lastBackup, color = Brand.Mint, fontSize = 12.sp)
+                    Text(
+                        if (prefs.lastBackupAt > 0) Fmt.relative(prefs.lastBackupAt, s) else s.never,
+                        color = Brand.Ivory, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                    )
+                }
+                CardButton(s.backupNow, enabled = !vm.cloudBusy, fill = false) { action = "backup"; getToken() }
+            }
+            Text(s.autoBackupNote, color = Brand.Mint, fontSize = 12.sp)
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                TextButton(onClick = { action = "restore"; getToken() }, enabled = !vm.cloudBusy) {
+                    Text(s.restoreRow, color = Brand.GoldLight, fontSize = 13.sp)
+                }
+                TextButton(onClick = { vm.signOut() }) {
+                    Text(s.signOut, color = Brand.Ivory.copy(alpha = 0.8f), fontSize = 13.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CardButton(text: String, enabled: Boolean, fill: Boolean = true, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .then(if (fill) Modifier.fillMaxWidth() else Modifier)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Brand.Ivory)
+            .bounceClick(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 11.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text, color = Brand.EmeraldDeep, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+private fun AdsOffRow(vm: AppViewModel) {
+    val s = LocalStr.current
+    val ctx = LocalContext.current
+    val prefs = vm.prefs
+    val off = prefs.adsOffUntil > System.currentTimeMillis()
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(enabled = !off) {
+                val act = ctx.findActivity() ?: return@clickable
+                Ads.showRewarded(
+                    act,
+                    onReward = {
+                        prefs.turnAdsOffUntil(System.currentTimeMillis() + 24 * 60 * 60 * 1000L)
+                        toast(ctx, s.adsOffDone)
+                    },
+                    onFailed = { toast(ctx, s.adNotReady) },
+                )
+            }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(s.adsOffTitle, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text(
+                if (off) s.adsOffUntil(Fmt.dateTime(prefs.adsOffUntil)) else s.adsOffBody,
+                fontSize = 12.sp, color = LocalExt.current.muted,
+            )
+        }
+    }
+}
 
 // Turn off before a Play Store release: Google Play does not allow
 // in-app donations outside Play billing (except registered charities).

@@ -155,14 +155,25 @@ class PhoneScreens : ShotsBase() {
     @Test
     fun romanUrdu_light_and_dark() {
         val s = Str(true)
+        shot("A_00a_welcome")
+        ui { vm.prefs.markWelcomeSeen() }
         shot("A_00_home_empty_light")
         seed()
 
         walk("A_light", s, full = true)
 
+        // Settings while signed in to Google (fake account, no network).
+        ui { vm.prefs.setGoogleAccount("aap@gmail.com", "Aap"); vm.prefs.markBackup(System.currentTimeMillis()) }
+        click(s.tabSettings)
+        shot("A_light_14_settings_signed_in")
+        click(s.tabKhatay)
+
         ui { vm.prefs.updateDark(true) }
         rule.waitForIdle()
         walk("B_dark", s, full = true)
+        click(s.tabSettings)
+        shot("B_dark_14_settings_signed_in")
+        click(s.tabKhatay)
 
         ui { vm.prefs.setPin("1234"); vm.unlocked = false }
         shot("B_dark_13_pin_lock")
@@ -179,7 +190,7 @@ class SmallScreenEnglish : ShotsBase() {
     @Test
     fun english_small_light_and_dark() {
         val s = Str(false)
-        ui { vm.prefs.updateRomanUrdu(false) }
+        ui { vm.prefs.updateRomanUrdu(false); vm.prefs.markWelcomeSeen() }
         seed()
 
         walk("C_small_en_light", s, full = false)

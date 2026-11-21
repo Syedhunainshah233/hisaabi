@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.syedhunain.hisaabi.AppViewModel
 import com.syedhunain.hisaabi.KhataItem
+import com.syedhunain.hisaabi.util.NativeAdRow
 
 @Composable
 fun HomeScreen(
@@ -187,6 +188,12 @@ fun HomeScreen(
                             onClick = { onOpen(item.khata.id) },
                         )
                     }
+                }
+            }
+
+            if (shown.size >= 3) {
+                item(key = "native_ad") {
+                    NativeAdRow(vm.prefs, Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp))
                 }
             }
         }

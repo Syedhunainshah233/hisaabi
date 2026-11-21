@@ -10,6 +10,9 @@ import com.syedhunain.hisaabi.data.AppDatabase
 import com.syedhunain.hisaabi.data.Khata
 import com.syedhunain.hisaabi.data.Prefs
 import com.syedhunain.hisaabi.data.Txn
+import com.syedhunain.hisaabi.util.BackupInfo
+import com.syedhunain.hisaabi.util.BackupJson
+import com.syedhunain.hisaabi.util.GoogleDrive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -44,6 +47,116 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 )
             }.sortedByDescending { it.lastActivity }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    // ---------- Google Drive backup ----------
+
+    enum class BackupResult { OK, NO_BACKUP, ERROR }
+
+    /** True while a sign-in, backup or restore is running. */
+    var cloudBusy by mutableStateOf(false)
+        private set
+
+    /** A backup found in Drive that the user may restore (shown as a dialog). */
+    var restoreOffer by mutableStateOf<BackupInfo?>(null)
+        private set
+    private var offerToken: String? = null
+
+    /** After Google sign-in: save the account and look for an existing backup. */
+    fun onSignedIn(token: String, lookForBackup: Boolean, onDone: (BackupResult) -> Unit) {
+        viewModelScope.launch {
+            cloudBusy = true
+            try {
+                val (email, name) = GoogleDrive.userInfo(token)
+                prefs.setGoogleAccount(email, name)
+                if (lookForBackup) {
+                    val info = GoogleDrive.findBackup(token)
+                    if (info != null) {
+                        offerToken = token
+                        restoreOffer = info
+                    }
+                }
+                onDone(BackupResult.OK)
+            } catch (e: Exception) {
+                onDone(BackupResult.ERROR)
+            } finally {
+                cloudBusy = false
+            }
+        }
+    }
+
+    fun backupNow(token: String, onDone: (BackupResult) -> Unit) {
+        viewModelScope.launch {
+            cloudBusy = true
+            try {
+                val json = BackupJson.encode(dao.khatasOnce(), dao.allTxnsOnce())
+                GoogleDrive.upload(token, json)
+                prefs.markBackup(System.currentTimeMillis())
+                onDone(BackupResult.OK)
+            } catch (e: Exception) {
+                onDone(BackupResult.ERROR)
+            } finally {
+                cloudBusy = false
+            }
+        }
+    }
+
+    /** Quiet daily backup (no UI). */
+    suspend fun backupSilently(token: String) {
+        runCatching {
+            val json = BackupJson.encode(dao.khatasOnce(), dao.allTxnsOnce())
+            GoogleDrive.upload(token, json)
+            prefs.markBackup(System.currentTimeMillis())
+        }
+    }
+
+    /** "Restore" button: find the backup, then ask the user to confirm. */
+    fun findBackupToRestore(token: String, onDone: (BackupResult) -> Unit) {
+        viewModelScope.launch {
+            cloudBusy = true
+            try {
+                val info = GoogleDrive.findBackup(token)
+                if (info == null) {
+                    onDone(BackupResult.NO_BACKUP)
+                } else {
+                    offerToken = token
+                    restoreOffer = info
+                    onDone(BackupResult.OK)
+                }
+            } catch (e: Exception) {
+                onDone(BackupResult.ERROR)
+            } finally {
+                cloudBusy = false
+            }
+        }
+    }
+
+    fun dismissRestore() {
+        restoreOffer = null
+        offerToken = null
+    }
+
+    fun confirmRestore(onDone: (BackupResult) -> Unit) {
+        val info = restoreOffer ?: return
+        val token = offerToken ?: return
+        restoreOffer = null
+        viewModelScope.launch {
+            cloudBusy = true
+            try {
+                val (ks, ts) = BackupJson.decode(GoogleDrive.download(token, info.id))
+                dao.replaceAll(ks, ts)
+                onDone(BackupResult.OK)
+            } catch (e: Exception) {
+                onDone(BackupResult.ERROR)
+            } finally {
+                offerToken = null
+                cloudBusy = false
+            }
+        }
+    }
+
+    fun signOut() {
+        prefs.clearGoogleAccount()
+    }
 
     fun txnsFor(khataId: Long): Flow<List<Txn>> = dao.txnsFor(khataId)
 

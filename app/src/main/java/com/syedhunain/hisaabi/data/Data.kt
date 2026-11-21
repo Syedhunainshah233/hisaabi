@@ -7,6 +7,7 @@ import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
@@ -101,6 +102,27 @@ abstract class HisaabDao {
 
     @Delete
     abstract suspend fun deleteTxn(t: Txn)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertKhatas(list: List<Khata>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertTxns(list: List<Txn>)
+
+    @Query("DELETE FROM txn")
+    abstract suspend fun deleteAllTxns()
+
+    @Query("DELETE FROM khata")
+    abstract suspend fun deleteAllKhatas()
+
+    /** Restore: replace everything on the phone with the backup's data. */
+    @Transaction
+    open suspend fun replaceAll(khatas: List<Khata>, txns: List<Txn>) {
+        deleteAllTxns()
+        deleteAllKhatas()
+        insertKhatas(khatas)
+        insertTxns(txns)
+    }
 
     @Query("UPDATE khata SET updatedAt = :time WHERE id = :id")
     abstract suspend fun touch(id: Long, time: Long)

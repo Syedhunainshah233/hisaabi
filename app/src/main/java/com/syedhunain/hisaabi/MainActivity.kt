@@ -18,9 +18,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import com.syedhunain.hisaabi.ui.BottomNav
 import com.syedhunain.hisaabi.ui.EntryScreen
 import com.syedhunain.hisaabi.ui.HisaabiTheme
@@ -30,9 +35,15 @@ import com.syedhunain.hisaabi.ui.KhataScreen
 import com.syedhunain.hisaabi.ui.LocalStr
 import com.syedhunain.hisaabi.ui.LockScreen
 import com.syedhunain.hisaabi.ui.ReportsScreen
+import com.syedhunain.hisaabi.ui.RestoreDialog
 import com.syedhunain.hisaabi.ui.SettingsScreen
 import com.syedhunain.hisaabi.ui.Str
 import com.syedhunain.hisaabi.ui.Tab
+import com.syedhunain.hisaabi.ui.WelcomeScreen
+import com.syedhunain.hisaabi.ui.findActivity
+import com.syedhunain.hisaabi.util.Ads
+import com.syedhunain.hisaabi.util.GoogleDrive
+import kotlinx.coroutines.launch
 
 sealed interface Screen {
     data object Home : Screen
@@ -62,6 +73,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        Ads.start(this)
     }
 
     override fun onStart() {
@@ -70,24 +82,64 @@ class MainActivity : ComponentActivity() {
         if (vm.lastStoppedAt > 0 && System.currentTimeMillis() - vm.lastStoppedAt > 30_000) {
             vm.unlocked = false
         }
+        autoBackup()
     }
 
     override fun onStop() {
         super.onStop()
         vm.lastStoppedAt = System.currentTimeMillis()
     }
+
+    /** Once a day, back up quietly if the user is signed in and already gave permission. */
+    private fun autoBackup() {
+        if (Ads.isRobolectric) return
+        val prefs = vm.prefs
+        if (prefs.googleEmail.isEmpty()) return
+        if (System.currentTimeMillis() - prefs.lastBackupAt < 24 * 60 * 60 * 1000L) return
+        if (vm.khatas.value.isEmpty() && vm.txns.value.isEmpty()) return
+        lifecycleScope.launch {
+            runCatching {
+                val result = GoogleDrive.authorize(this@MainActivity)
+                val token = result.accessToken
+                if (!result.hasResolution() && token != null) vm.backupSilently(token)
+            }
+        }
+    }
 }
 
 @Composable
 fun App(vm: AppViewModel) {
-    if (vm.prefs.pinHash.isNotEmpty() && !vm.unlocked) {
-        LockScreen(check = { vm.prefs.checkPin(it) }, onUnlocked = { vm.unlocked = true })
-        return
-    }
-
     val stack = remember { mutableStateListOf<Screen>(Screen.Home) }
     val current = stack.last()
     val depth = stack.size
+
+    val locked = vm.prefs.pinHash.isNotEmpty() && !vm.unlocked
+    val welcome = !vm.prefs.seenWelcome
+
+    // Status bar icons: dark on light screens, light on dark mode and on the green headers.
+    val lightIcons = vm.prefs.dark || locked || welcome || current is Screen.KhataDetail
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            view.context.findActivity()?.window?.let { w ->
+                WindowCompat.getInsetsController(w, view).apply {
+                    isAppearanceLightStatusBars = !lightIcons
+                    isAppearanceLightNavigationBars = !vm.prefs.dark
+                }
+            }
+        }
+    }
+
+    if (locked) {
+        LockScreen(check = { vm.prefs.checkPin(it) }, onUnlocked = { vm.unlocked = true })
+        return
+    }
+    if (welcome) {
+        WelcomeScreen(vm)
+        return
+    }
+
+    val activity = LocalContext.current.findActivity()
 
     fun push(s: Screen) {
         stack.add(s)
@@ -114,6 +166,8 @@ fun App(vm: AppViewModel) {
     BackHandler(enabled = depth > 1 || current != Screen.Home) {
         if (depth > 1) pop() else tab(Tab.KHATAY)
     }
+
+    RestoreDialog(vm)
 
     AnimatedContent(
         targetState = current to depth,
@@ -158,7 +212,12 @@ fun App(vm: AppViewModel) {
                 khataId = screen.id,
                 onBack = { pop() },
                 onSaved = { id, isNew ->
-                    if (isNew) replaceTop(Screen.KhataDetail(id)) else pop()
+                    if (isNew) {
+                        replaceTop(Screen.KhataDetail(id))
+                        Ads.onBreak(activity, vm.prefs, "new_khata", every = 2)
+                    } else {
+                        pop()
+                    }
                 },
             )
             is Screen.EntryForm -> EntryScreen(
@@ -167,6 +226,10 @@ fun App(vm: AppViewModel) {
                 initialGave = screen.gave,
                 txnId = screen.txnId,
                 onBack = { pop() },
+                onSavedAndClosed = {
+                    pop()
+                    Ads.onBreak(activity, vm.prefs, "entry", every = 5)
+                },
             )
         }
     }

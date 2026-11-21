@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.syedhunain.hisaabi.AppViewModel
 import com.syedhunain.hisaabi.data.Txn
+import com.syedhunain.hisaabi.util.BannerAd
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -196,6 +197,7 @@ fun ReportsScreen(vm: AppViewModel, onOpenKhata: (Long) -> Unit, bottomBar: @Com
                 }
             }
             item { ChartCard(bars) }
+            item { BannerAd(vm.prefs, Modifier.padding(horizontal = 16.dp)) }
             item {
                 SectionLabel(s.periodEntries, Modifier.padding(start = 20.dp, top = 6.dp))
             }

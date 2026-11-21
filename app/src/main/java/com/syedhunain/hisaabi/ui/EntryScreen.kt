@@ -86,6 +86,7 @@ fun EntryScreen(
     initialGave: Boolean,
     txnId: Long?,
     onBack: () -> Unit,
+    onSavedAndClosed: () -> Unit = onBack,
 ) {
     val s = LocalStr.current
     val ext = LocalExt.current
@@ -129,7 +130,7 @@ fun EntryScreen(
     LaunchedEffect(saved) {
         if (saved) {
             delay(900)
-            onBack()
+            onSavedAndClosed()
         }
     }
 

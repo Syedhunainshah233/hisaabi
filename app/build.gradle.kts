@@ -13,8 +13,8 @@ android {
         applicationId = "com.syedhunain.hisaabi"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0-test"
+        versionCode = 2
+        versionName = "0.2.0-test"
     }
 
     signingConfigs {
@@ -29,7 +29,19 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Google's official TEST ad units: safe to click, never earn money.
+            buildConfigField("String", "AD_BANNER", "\"ca-app-pub-3940256099942544/9214589741\"")
+            buildConfigField("String", "AD_NATIVE", "\"ca-app-pub-3940256099942544/2247696110\"")
+            buildConfigField("String", "AD_INTERSTITIAL", "\"ca-app-pub-3940256099942544/1033173712\"")
+            buildConfigField("String", "AD_REWARDED", "\"ca-app-pub-3940256099942544/5224354917\"")
+        }
         release {
+            // Real Hisaabi ad units (AdMob account SyedTechdevelopers).
+            buildConfigField("String", "AD_BANNER", "\"ca-app-pub-8064134362670148/4698155188\"")
+            buildConfigField("String", "AD_NATIVE", "\"ca-app-pub-8064134362670148/9674937660\"")
+            buildConfigField("String", "AD_INTERSTITIAL", "\"ca-app-pub-8064134362670148/8235356774\"")
+            buildConfigField("String", "AD_REWARDED", "\"ca-app-pub-8064134362670148/9548438440\"")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -46,6 +58,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     testOptions {
@@ -74,6 +87,12 @@ dependencies {
     implementation("androidx.compose.animation:animation")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-core")
+
+    // Google sign-in (authorization for Drive app folder) and AdMob
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
+    implementation("com.google.android.gms:play-services-ads:23.5.0")
+    implementation("com.google.android.ump:user-messaging-platform:3.1.0")
 
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")

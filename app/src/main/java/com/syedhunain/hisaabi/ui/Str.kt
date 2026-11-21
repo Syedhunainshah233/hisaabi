@@ -155,6 +155,45 @@ class Str(val romanUrdu: Boolean) {
     val pinMismatch get() = t("PINs must be 4 digits and match", "PIN 4 hindson ka aur dono ek jaise hon")
     val nothingToExport get() = t("Nothing to export yet", "Abhi export karne ko kuch nahi")
 
+    // Google backup
+    val signInGoogle get() = t("Sign in with Google", "Google se Login karein")
+    val startWithoutLogin get() = t("Start without signing in", "Bina login ke shuru karein")
+    val welcomePrivacy get() = t(
+        "Signing in backs up your records to your own Google Drive. We have no server — your data is only yours.",
+        "Login karne se aap ka hisaab aap ki apni Google Drive mein backup hota hai. Hamara koi server nahi — data sirf aap ka."
+    )
+    val backupSignedOutBody get() = t(
+        "Sign in with Google to back up to your own Drive. On a new phone, sign in and your records come back.",
+        "Google se login kar ke apni Drive mein backup rakhein. Naye phone pe login karein aur sara hisaab wapas."
+    )
+    val connected get() = t("Connected to Google Drive", "Google Drive se juda hua")
+    val lastBackup get() = t("Last backup", "Aakhri backup")
+    val never get() = t("Not yet", "Abhi tak nahi")
+    val backupNow get() = t("Back up now", "Abhi Backup")
+    val restoreRow get() = t("Restore from backup", "Data wapas laayein (Restore)")
+    val signOut get() = t("Sign out of Google", "Google se Logout")
+    val autoBackupNote get() = t("Backs up automatically once a day when you open the app.", "Din mein ek dafa app kholne par khud backup ho jata hai.")
+    val backupDone get() = t("Backup saved to Google Drive", "Google Drive mein backup ho gaya")
+    val restoreDone get() = t("Your records are back", "Aap ka hisaab wapas aa gaya")
+    val noBackup get() = t("No backup found in this Google account", "Is Google account mein koi backup nahi mila")
+    val cloudError get() = t("Could not reach Google. Check internet and try again.", "Google se rabta nahi hua. Internet check kar ke dobara koshish karein.")
+    val signInFailed get() = t("Google sign-in was cancelled", "Google login nahi hua")
+    val backupFound get() = t("Backup found!", "Backup mil gaya!")
+    fun backupFoundBody(date: String) = t("A Hisaabi backup from $date is in your Google Drive.", "Aap ki Google Drive mein $date ka Hisaabi backup mojood hai.")
+    val restoreWarning get() = t(
+        "Restoring replaces the records on this phone with the backup.",
+        "Restore karne se is phone ka maujooda hisaab backup se badal jayega."
+    )
+    val restoreNow get() = t("Restore", "Wapas laayein")
+    val notNow get() = t("Not now", "Abhi nahi")
+
+    // Ads
+    val adsOffTitle get() = t("Hide ads for 24 hours", "24 ghante ads band karein")
+    val adsOffBody get() = t("Watch one short video", "Ek chhoti video dekhein")
+    fun adsOffUntil(time: String) = t("Ads off until $time", "Ads band hain: $time tak")
+    val adsOffDone get() = t("Thanks! No ads for 24 hours", "Shukriya! 24 ghante koi ad nahi")
+    val adNotReady get() = t("Video not available right now, try later", "Abhi video nahi mili, thori der baad koshish karein")
+
     // Lock
     val enterPin get() = t("Enter your PIN", "Apna PIN darj karein")
     val wrongPin get() = t("Wrong PIN, try again", "Ghalat PIN, dobara koshish karein")
