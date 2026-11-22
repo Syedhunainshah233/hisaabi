@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.auth.api.identity.Identity
 import com.syedhunain.hisaabi.AppViewModel
+import com.syedhunain.hisaabi.util.Ads
 import com.syedhunain.hisaabi.util.GoogleDrive
 import kotlinx.coroutines.launch
 
@@ -59,6 +60,7 @@ fun rememberGoogleToken(onToken: (String?) -> Unit): () -> Unit {
                 val result = GoogleDrive.authorize(ctx)
                 val pending = result.pendingIntent
                 if (result.hasResolution() && pending != null) {
+                    Ads.suppressNextReturn()
                     launcher.launch(IntentSenderRequest.Builder(pending.intentSender).build())
                 } else {
                     callback(result.accessToken)

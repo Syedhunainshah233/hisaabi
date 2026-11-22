@@ -33,6 +33,7 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.nativead.NativeAd
@@ -45,17 +46,19 @@ import com.google.android.ump.UserMessagingPlatform
 import com.syedhunain.hisaabi.BuildConfig
 import com.syedhunain.hisaabi.data.Prefs
 import com.syedhunain.hisaabi.ui.LocalExt
+import java.lang.ref.WeakReference
 
 /**
  * AdMob in one place. Debug builds use Google's test ad units (see app/build.gradle.kts).
- * Rules we keep: no ads next to Diya/Liya buttons or inside forms, interstitials only at
- * natural breaks and at most once every 3 minutes, and the user can hide ads for 24h with a rewarded video.
+ * Rules we keep: no ads next to Diya/Liya buttons or inside forms; full-screen ads only at
+ * natural breaks (app open/return, new khata, every 4th entry), never two within 20 seconds;
+ * and the user can hide ads for 24h with a rewarded video.
  */
 object Ads {
     var ready by mutableStateOf(false)
         private set
 
-    private const val MIN_GAP_MS = 3 * 60 * 1000L
+    private const val MIN_GAP_MS = 20 * 1000L
     private var interstitial: InterstitialAd? = null
     private var loadingInterstitial = false
     private var lastShownAt = 0L
@@ -66,7 +69,10 @@ object Ads {
     fun allowed(prefs: Prefs): Boolean = ready && System.currentTimeMillis() > prefs.adsOffUntil
 
     /** Ask for consent where the law needs it (Google UMP), then start the SDK. */
-    fun start(activity: Activity) {
+    private var prefsRef: Prefs? = null
+
+    fun start(activity: Activity, prefs: Prefs) {
+        prefsRef = prefs
         if (isRobolectric || ready) return
         runCatching {
             val consent = UserMessagingPlatform.getConsentInformation(activity)
@@ -93,6 +99,7 @@ object Ads {
             MobileAds.initialize(activity.applicationContext) {
                 ready = true
                 loadInterstitial(activity.applicationContext)
+                loadAppOpen(activity.applicationContext)
             }
         }
     }
@@ -141,6 +148,96 @@ object Ads {
             }
         }
         lastShownAt = now
+        suppressNextReturn()
+        ad.show(activity)
+    }
+
+    // ---------- App open ads (app launch and coming back to the app) ----------
+
+    private const val APP_OPEN_MAX_AGE_MS = 4 * 60 * 60 * 1000L
+    private const val LAUNCH_WAIT_MS = 8_000L
+    private var appOpen: AppOpenAd? = null
+    private var appOpenLoadedAt = 0L
+    private var loadingAppOpen = false
+    private var launchActivity: WeakReference<Activity>? = null
+    private var launchDeadline = 0L
+    private var suppressReturn = false
+
+    /** Call before opening another app/screen of ours (share, dial, pickers) so coming back shows no ad. */
+    fun suppressNextReturn() {
+        suppressReturn = true
+    }
+
+    private fun appOpenFresh(): Boolean =
+        appOpen != null && System.currentTimeMillis() - appOpenLoadedAt < APP_OPEN_MAX_AGE_MS
+
+    private fun loadAppOpen(context: Context) {
+        if (BuildConfig.AD_APP_OPEN.isEmpty() || loadingAppOpen || appOpenFresh()) return
+        loadingAppOpen = true
+        AppOpenAd.load(
+            context, BuildConfig.AD_APP_OPEN, AdRequest.Builder().build(),
+            object : AppOpenAd.AppOpenAdLoadCallback() {
+                override fun onAdLoaded(ad: AppOpenAd) {
+                    appOpen = ad
+                    appOpenLoadedAt = System.currentTimeMillis()
+                    loadingAppOpen = false
+                    // Cold start: show it if it arrived while the app is still opening.
+                    val act = launchActivity?.get()
+                    if (act != null && System.currentTimeMillis() < launchDeadline && !act.isFinishing) {
+                        launchDeadline = 0L
+                        showAppOpen(act)
+                    }
+                }
+
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    loadingAppOpen = false
+                }
+            },
+        )
+    }
+
+    /** Called from the activity's onStart: app launch (coldStart) or coming back from the background. */
+    fun onAppStart(activity: Activity, coldStart: Boolean) {
+        if (isRobolectric) return
+        if (suppressReturn) {
+            suppressReturn = false
+            return
+        }
+        if (coldStart) {
+            launchActivity = WeakReference(activity)
+            launchDeadline = System.currentTimeMillis() + LAUNCH_WAIT_MS
+            if (appOpenFresh()) {
+                launchDeadline = 0L
+                showAppOpen(activity)
+            }
+            return
+        }
+        showAppOpen(activity)
+    }
+
+    private fun showAppOpen(activity: Activity) {
+        val prefs = prefsRef ?: return
+        if (!allowed(prefs)) return
+        val ad = appOpen?.takeIf { appOpenFresh() }
+        if (ad == null) {
+            loadAppOpen(activity.applicationContext); return
+        }
+        val now = System.currentTimeMillis()
+        if (now - lastShownAt < MIN_GAP_MS) return
+        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+            override fun onAdDismissedFullScreenContent() {
+                appOpen = null
+                loadAppOpen(activity.applicationContext)
+            }
+
+            override fun onAdFailedToShowFullScreenContent(e: com.google.android.gms.ads.AdError) {
+                appOpen = null
+                loadAppOpen(activity.applicationContext)
+            }
+        }
+        appOpen = null
+        lastShownAt = now
+        suppressNextReturn()
         ad.show(activity)
     }
 
@@ -153,6 +250,7 @@ object Ads {
             activity, BuildConfig.AD_REWARDED, AdRequest.Builder().build(),
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
+                    suppressNextReturn()
                     ad.show(activity) { onReward() }
                 }
 

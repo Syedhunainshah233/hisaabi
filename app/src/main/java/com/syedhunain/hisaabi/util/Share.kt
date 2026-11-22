@@ -19,6 +19,7 @@ object Share {
 
     private fun start(ctx: Context, intent: Intent, s: Str) {
         try {
+            Ads.suppressNextReturn()
             ctx.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
             Toast.makeText(ctx, s.noApp, Toast.LENGTH_SHORT).show()

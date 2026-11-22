@@ -56,9 +56,11 @@ sealed interface Screen {
 
 class MainActivity : ComponentActivity() {
     internal val vm: AppViewModel by viewModels()
+    private var coldStart = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        coldStart = savedInstanceState == null
         enableEdgeToEdge()
         setContent {
             HisaabiTheme(dark = vm.prefs.dark) {
@@ -73,7 +75,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        Ads.start(this)
+        Ads.start(this, vm.prefs)
     }
 
     override fun onStart() {
@@ -83,6 +85,8 @@ class MainActivity : ComponentActivity() {
             vm.unlocked = false
         }
         autoBackup()
+        Ads.onAppStart(this, coldStart)
+        coldStart = false
     }
 
     override fun onStop() {
@@ -214,7 +218,7 @@ fun App(vm: AppViewModel) {
                 onSaved = { id, isNew ->
                     if (isNew) {
                         replaceTop(Screen.KhataDetail(id))
-                        Ads.onBreak(activity, vm.prefs, "new_khata", every = 2)
+                        Ads.onBreak(activity, vm.prefs, "new_khata", every = 1)
                     } else {
                         pop()
                     }
@@ -228,7 +232,7 @@ fun App(vm: AppViewModel) {
                 onBack = { pop() },
                 onSavedAndClosed = {
                     pop()
-                    Ads.onBreak(activity, vm.prefs, "entry", every = 5)
+                    Ads.onBreak(activity, vm.prefs, "entry", every = 4)
                 },
             )
         }

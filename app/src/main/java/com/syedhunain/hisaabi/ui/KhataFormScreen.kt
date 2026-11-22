@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.syedhunain.hisaabi.AppViewModel
 import com.syedhunain.hisaabi.data.Khata
+import com.syedhunain.hisaabi.util.Ads
 
 /** Opens the system contact picker on phone numbers; no contacts permission needed. */
 private class PickPhone : ActivityResultContract<Unit, Uri?>() {
@@ -161,7 +162,7 @@ fun KhataFormScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 shape = RoundedCornerShape(14.dp),
                 trailingIcon = {
-                    IconButton(onClick = { runCatching { picker.launch(Unit) } }) {
+                    IconButton(onClick = { Ads.suppressNextReturn(); runCatching { picker.launch(Unit) } }) {
                         Icon(
                             Icons.Filled.AccountCircle,
                             contentDescription = s.contacts,
