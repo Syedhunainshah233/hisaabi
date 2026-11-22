@@ -287,7 +287,7 @@ private fun AdsOffRow(vm: AppViewModel) {
                 Ads.showRewarded(
                     act,
                     onReward = {
-                        prefs.turnAdsOffUntil(System.currentTimeMillis() + 24 * 60 * 60 * 1000L)
+                        prefs.turnAdsOffUntil(System.currentTimeMillis() + 12 * 60 * 60 * 1000L)
                         toast(ctx, s.adsOffDone)
                     },
                     onFailed = { toast(ctx, s.adNotReady) },
