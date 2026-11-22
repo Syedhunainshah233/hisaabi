@@ -13,8 +13,8 @@ android {
         applicationId = "com.syedhunain.hisaabi"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.0.1"
+        versionCode = 5
+        versionName = "1.0.2"
     }
 
     // Release (upload) key comes from GitHub Actions secrets; it is never stored in the repo.
@@ -54,8 +54,7 @@ android {
             buildConfigField("String", "AD_NATIVE", "\"ca-app-pub-8064134362670148/9674937660\"")
             buildConfigField("String", "AD_INTERSTITIAL", "\"ca-app-pub-8064134362670148/8235356774\"")
             buildConfigField("String", "AD_REWARDED", "\"ca-app-pub-8064134362670148/9548438440\"")
-            // Fill in the real "App open" ad unit ID from AdMob. Empty = no app open ads.
-            buildConfigField("String", "AD_APP_OPEN", "\"\"")
+            buildConfigField("String", "AD_APP_OPEN", "\"ca-app-pub-8064134362670148/5488261162\"")
             if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
