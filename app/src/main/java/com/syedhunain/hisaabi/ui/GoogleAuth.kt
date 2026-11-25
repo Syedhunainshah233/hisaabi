@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.api.ApiException
 import com.syedhunain.hisaabi.AppViewModel
 import com.syedhunain.hisaabi.util.Ads
 import com.syedhunain.hisaabi.util.GoogleDrive
@@ -46,9 +47,12 @@ fun rememberGoogleToken(onToken: (String?) -> Unit): () -> Unit {
     val callback by rememberUpdatedState(onToken)
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { res ->
         if (res.resultCode == Activity.RESULT_OK) {
-            val token = runCatching {
+            val token = try {
                 Identity.getAuthorizationClient(ctx).getAuthorizationResultFromIntent(res.data).accessToken
-            }.getOrNull()
+            } catch (e: Exception) {
+                showGoogleError(ctx, e)
+                null
+            }
             callback(token)
         } else {
             callback(null)
@@ -66,10 +70,27 @@ fun rememberGoogleToken(onToken: (String?) -> Unit): () -> Unit {
                     callback(result.accessToken)
                 }
             } catch (e: Exception) {
+                showGoogleError(ctx, e)
                 callback(null)
             }
         }
     }
+}
+
+/**
+ * Shows Google's error code so sign-in problems can be diagnosed:
+ * 10 = app not registered (package name / SHA-1 missing in Google Cloud),
+ * 7 = no internet, 12501 / 16 = cancelled.
+ */
+private fun showGoogleError(ctx: Context, e: Exception) {
+    val code = (e as? ApiException)?.statusCode
+    val hint = when (code) {
+        10 -> "App ki SHA-1 Google Cloud mein registered nahi (DEVELOPER_ERROR)"
+        7 -> "Internet nahi mila"
+        12501, 16 -> "Login cancel ho gaya"
+        else -> e.javaClass.simpleName
+    }
+    Toast.makeText(ctx, "Google error ${code ?: "-"}: $hint", Toast.LENGTH_LONG).show()
 }
 
 fun toast(ctx: Context, text: String) = Toast.makeText(ctx, text, Toast.LENGTH_SHORT).show()
