@@ -188,10 +188,13 @@ class Str(val romanUrdu: Boolean) {
     val notNow get() = t("Not now", "Abhi nahi")
 
     // Ads
-    val adsOffTitle get() = t("Hide ads for 12 hours", "12 ghante ads band karein")
-    val adsOffBody get() = t("Watch one full-screen video ad", "Ek poori video ad dekhein")
+    val adsOffTitle get() = t("Remove ads for 1 day", "1 din ke liye ads band karein")
+    fun adsOffBody(done: Int, total: Int) =
+        t("Watch $total video ads ($done/$total watched)", "$total video ads dekhein ($done/$total dekh liye)")
     fun adsOffUntil(time: String) = t("Ads off until $time", "Ads band hain: $time tak")
-    val adsOffDone get() = t("Thanks! No ads for 12 hours", "Shukriya! 12 ghante koi ad nahi")
+    val adsOffDone get() = t("Thanks! No ads for 1 day", "Shukriya! 1 din tak koi ad nahi")
+    fun adsOffProgress(done: Int, left: Int) =
+        t("$done watched. $left more for a day without ads", "$done dekh li. $left aur dekhein, phir 1 din ads band")
     val adNotReady get() = t("Video not available right now, try later", "Abhi video nahi mili, thori der baad koshish karein")
 
     // Lock

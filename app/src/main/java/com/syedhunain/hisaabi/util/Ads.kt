@@ -52,7 +52,7 @@ import java.lang.ref.WeakReference
  * AdMob in one place. Debug builds use Google's test ad units (see app/build.gradle.kts).
  * Rules we keep: no ads next to Diya/Liya buttons or inside forms; full-screen ads only at
  * natural breaks (app open/return, new khata, every 4th entry), never two within 20 seconds;
- * and the user can hide ads for 12h with a rewarded video.
+ * and the user can hide ads for a day by watching 5 rewarded videos.
  */
 object Ads {
     var ready by mutableStateOf(false)

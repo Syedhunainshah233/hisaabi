@@ -2,6 +2,7 @@ package com.syedhunain.hisaabi.data
 
 import android.content.Context
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -32,6 +33,13 @@ class Prefs(context: Context) {
         private set
     var adsOffUntil by mutableLongStateOf(sp.getLong(KEY_ADS_OFF, 0L))
         private set
+    /** Rewarded videos watched towards the next ad-free day. */
+    var rewardsWatched by mutableIntStateOf(sp.getInt(KEY_REWARDS, 0))
+        private set
+
+    fun updateRewardsWatched(n: Int) {
+        rewardsWatched = n; sp.edit().putInt(KEY_REWARDS, n).apply()
+    }
 
     fun setGoogleAccount(email: String, name: String) {
         googleEmail = email; googleName = name
@@ -95,5 +103,6 @@ class Prefs(context: Context) {
         const val KEY_LAST_BACKUP = "last_backup"
         const val KEY_WELCOME = "seen_welcome"
         const val KEY_ADS_OFF = "ads_off_until"
+        const val KEY_REWARDS = "rewards_watched"
     }
 }

@@ -13,8 +13,8 @@ android {
         applicationId = "com.syedhunain.hisaabi"
         minSdk = 26
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.1.1"
+        versionCode = 9
+        versionName = "1.1.2"
     }
 
     // Release (upload) key comes from GitHub Actions secrets; it is never stored in the repo.

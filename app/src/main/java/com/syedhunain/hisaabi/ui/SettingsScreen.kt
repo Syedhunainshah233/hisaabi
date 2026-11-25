@@ -273,6 +273,9 @@ private fun CardButton(text: String, enabled: Boolean, fill: Boolean = true, onC
     }
 }
 
+/** Rewarded videos a user watches to get one ad-free day. */
+private const val VIDEOS_FOR_AD_FREE_DAY = 5
+
 @Composable
 private fun AdsOffRow(vm: AppViewModel) {
     val s = LocalStr.current
@@ -287,8 +290,15 @@ private fun AdsOffRow(vm: AppViewModel) {
                 Ads.showRewarded(
                     act,
                     onReward = {
-                        prefs.turnAdsOffUntil(System.currentTimeMillis() + 12 * 60 * 60 * 1000L)
-                        toast(ctx, s.adsOffDone)
+                        val done = prefs.rewardsWatched + 1
+                        if (done >= VIDEOS_FOR_AD_FREE_DAY) {
+                            prefs.updateRewardsWatched(0)
+                            prefs.turnAdsOffUntil(System.currentTimeMillis() + 24 * 60 * 60 * 1000L)
+                            toast(ctx, s.adsOffDone)
+                        } else {
+                            prefs.updateRewardsWatched(done)
+                            toast(ctx, s.adsOffProgress(done, VIDEOS_FOR_AD_FREE_DAY - done))
+                        }
                     },
                     onFailed = { toast(ctx, s.adNotReady) },
                 )
@@ -301,7 +311,8 @@ private fun AdsOffRow(vm: AppViewModel) {
         Column(Modifier.weight(1f)) {
             Text(s.adsOffTitle, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             Text(
-                if (off) s.adsOffUntil(Fmt.dateTime(prefs.adsOffUntil)) else s.adsOffBody,
+                if (off) s.adsOffUntil(Fmt.dateTime(prefs.adsOffUntil))
+                else s.adsOffBody(prefs.rewardsWatched, VIDEOS_FOR_AD_FREE_DAY),
                 fontSize = 12.sp, color = LocalExt.current.muted,
             )
         }
