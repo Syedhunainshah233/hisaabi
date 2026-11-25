@@ -7,14 +7,14 @@ plugins {
 
 android {
     namespace = "com.syedhunain.hisaabi"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.syedhunain.hisaabi"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 6
-        versionName = "1.0.3"
+        targetSdk = 36
+        versionCode = 7
+        versionName = "1.1.0"
     }
 
     // Release (upload) key comes from GitHub Actions secrets; it is never stored in the repo.
@@ -93,6 +93,8 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-compose:1.9.3")
+    // AdMob pulls in androidx.fragment 1.1.0, which Play flags as outdated; pin a current version.
+    implementation("androidx.fragment:fragment-ktx:1.8.5")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 

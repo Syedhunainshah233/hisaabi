@@ -73,6 +73,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.syedhunain.hisaabi.AppViewModel
+import com.syedhunain.hisaabi.util.BannerAd
 import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.ZoneId
@@ -212,6 +213,8 @@ fun EntryScreen(
                     }
                 }
             }
+
+            BannerAd(vm.prefs, Modifier.padding(top = 8.dp, bottom = 8.dp))
 
             Column(
                 Modifier

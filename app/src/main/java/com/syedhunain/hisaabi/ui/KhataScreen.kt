@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import com.syedhunain.hisaabi.AppViewModel
 import com.syedhunain.hisaabi.R
 import com.syedhunain.hisaabi.data.Txn
+import com.syedhunain.hisaabi.util.BannerAd
 import com.syedhunain.hisaabi.util.Share
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -98,6 +99,7 @@ fun KhataScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
+            Column {
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -183,6 +185,8 @@ fun KhataScreen(
                         }
                     }
                 }
+            }
+            BannerAd(vm.prefs, Modifier.padding(top = 8.dp))
             }
         },
         bottomBar = {

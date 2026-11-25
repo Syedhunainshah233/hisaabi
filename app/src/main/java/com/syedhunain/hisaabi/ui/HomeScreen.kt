@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.syedhunain.hisaabi.AppViewModel
 import com.syedhunain.hisaabi.KhataItem
+import com.syedhunain.hisaabi.util.BannerAd
 import com.syedhunain.hisaabi.util.NativeAdRow
 
 @Composable
@@ -86,7 +87,12 @@ fun HomeScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = bottomBar,
+        bottomBar = {
+            Column {
+                BannerAd(vm.prefs)
+                bottomBar()
+            }
+        },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onNew,
@@ -176,24 +182,32 @@ fun HomeScreen(
                 }
             }
 
-            items(shown, key = { it.khata.id }) { item ->
-                val index = shown.indexOf(item)
-                Box(Modifier.animateItem()) {
-                    StaggerIn(index) {
-                        KhataRow(
-                            item = item,
-                            currency = cur,
-                            first = index == 0,
-                            last = index == shown.lastIndex,
-                            onClick = { onOpen(item.khata.id) },
-                        )
+            // Rows in groups of 6, with a native ad between groups (and one at the end of short lists).
+            val groups = shown.chunked(6)
+            groups.forEachIndexed { g, group ->
+                items(group, key = { it.khata.id }) { item ->
+                    val i = group.indexOf(item)
+                    val index = g * 6 + i
+                    Box(Modifier.animateItem()) {
+                        StaggerIn(index) {
+                            KhataRow(
+                                item = item,
+                                currency = cur,
+                                first = i == 0,
+                                last = i == group.lastIndex,
+                                onClick = { onOpen(item.khata.id) },
+                            )
+                        }
                     }
                 }
-            }
-
-            if (shown.size >= 3) {
-                item(key = "native_ad") {
-                    NativeAdRow(vm.prefs, Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp))
+                val lastGroup = g == groups.lastIndex
+                if (!lastGroup || shown.size >= 3) {
+                    item(key = "native_ad_$g") {
+                        NativeAdRow(
+                            vm.prefs,
+                            Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
+                        )
+                    }
                 }
             }
         }
