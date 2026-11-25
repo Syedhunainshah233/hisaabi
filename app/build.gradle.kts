@@ -13,8 +13,8 @@ android {
         applicationId = "com.syedhunain.hisaabi"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.1.2"
+        versionCode = 10
+        versionName = "1.1.3"
     }
 
     // Release (upload) key comes from GitHub Actions secrets; it is never stored in the repo.
@@ -56,7 +56,9 @@ android {
             buildConfigField("String", "AD_REWARDED", "\"ca-app-pub-8064134362670148/9548438440\"")
             buildConfigField("String", "AD_APP_OPEN", "\"ca-app-pub-8064134362670148/5488261162\"")
             if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = false
+            // R8: shrink + obfuscate (Play flags apps with no code optimization)
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
