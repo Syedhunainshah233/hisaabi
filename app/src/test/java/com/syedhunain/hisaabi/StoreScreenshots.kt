@@ -3,6 +3,7 @@ package com.syedhunain.hisaabi
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.syedhunain.hisaabi.data.AppDatabase
 import com.syedhunain.hisaabi.data.Khata
 import com.syedhunain.hisaabi.ui.Str
 import org.junit.Test
@@ -17,6 +18,11 @@ import org.robolectric.annotation.GraphicsMode
 class StoreScreenshots : ShotsBase() {
 
     private fun seedDemo() {
+        // Other test classes may have left rows in the same database file: start clean.
+        kotlinx.coroutines.runBlocking {
+            AppDatabase.get(rule.activity).dao().replaceAll(emptyList(), emptyList())
+        }
+        rule.waitUntil(15_000) { vm.khatas.value.isEmpty() && vm.txns.value.isEmpty() }
         val now = System.currentTimeMillis()
         val day = 86_400_000L
         ui {
@@ -53,7 +59,6 @@ class StoreScreenshots : ShotsBase() {
     @Test
     fun storeShots() {
         val s = Str(true)
-        shot("S_00_welcome")
         seedDemo()
 
         shot("S_01_home")
