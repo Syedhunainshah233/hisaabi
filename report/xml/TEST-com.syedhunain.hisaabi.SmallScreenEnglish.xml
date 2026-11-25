@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.syedhunain.hisaabi.SmallScreenEnglish" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-25T15:28:28" hostname="runnervm0hi8g" time="2.128">
+  <properties/>
+  <testcase name="english_small_light_and_dark" classname="com.syedhunain.hisaabi.SmallScreenEnglish" time="2.128"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

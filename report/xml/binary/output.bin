@@ -1,0 +1,2 @@
+šView.captureToImage Could not find window for view. Falling back to View#draw instead of PixelCopy(If you are using Material3 dialogs, this is expected).
+šView.captureToImage Could not find window for view. Falling back to View#draw instead of PixelCopy(If you are using Material3 dialogs, this is expected).

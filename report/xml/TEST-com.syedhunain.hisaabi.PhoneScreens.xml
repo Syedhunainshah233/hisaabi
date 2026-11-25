@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.syedhunain.hisaabi.PhoneScreens" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-25T15:28:11" hostname="runnervm0hi8g" time="17.269">
+  <properties/>
+  <testcase name="romanUrdu_light_and_dark" classname="com.syedhunain.hisaabi.PhoneScreens" time="17.269"/>
+  <system-out><![CDATA[View.captureToImage Could not find window for view. Falling back to View#draw instead of PixelCopy(If you are using Material3 dialogs, this is expected).
+View.captureToImage Could not find window for view. Falling back to View#draw instead of PixelCopy(If you are using Material3 dialogs, this is expected).
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
